@@ -1,6 +1,6 @@
 {
   "name": "re-audit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "After Claude writes code, audit the changes: why each was needed (with evidence), missed edge cases in plain language, safe ways to shrink it, and every claim checked against the code.",
   "license": "MIT",
   "keywords": [

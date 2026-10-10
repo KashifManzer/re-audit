@@ -43,7 +43,15 @@ If the diff is over about 3000 lines, say so and suggest passing specific files;
 ## 2. Prepare the reviewer's input
 
 - **User request**: 1-2 sentences on what the user asked for in this conversation. If this conversation has no earlier request, write `unknown, judge from the code only`.
-- **Checks**: test, lint, and type-check commands the project already defines (for example `package.json` scripts, `pytest`, `go test ./...`, `cargo test`, a `Makefile` target). Only list commands that exist; do not invent any.
+- **Checks**: test, lint, and type-check commands the project already defines. Find them only in project files (`package.json` scripts, `pyproject.toml`, `pytest.ini`, existing test files, `Makefile`, `go.mod`, `Cargo.toml`). Then prove each one:
+  1. Read what it runs first (for `npm run` or `make`, the script body). Do not run a command that edits files or never exits: one containing `--fix`, `--write`, `-w`, `-u`, `--updateSnapshot`, or `--watch`, or one calling a formatter that rewrites files unless given `--check` (`black`, `ruff format`, `cargo fmt`, `go fmt`). Hand it over as `not runnable: <command>: would modify files` (or `never exits`).
+  2. Before the first check, record `shasum` of every file in the step-1 scope, and in git also `git status --porcelain`.
+  3. Run each command once, as its own Bash call.
+  4. If the output shows the program itself is missing (`command not found`, exit code 127), you may switch to the standard alternative name of the same tool (for example `python3` for `python`), but only if `command -v` finds it. Run that once. Never substitute a different tool.
+  5. After the checks, compare with the record from sub-step 2. If a scope file's hash changed, or a tracked file newly shows as modified, **stop**: tell the user which command changed which files, and do not spawn the reviewer. Never try to undo, because their own work may be mixed in. Newly created untracked files (caches, new snapshots) are fine; list them under "Not checked".
+  6. Hand over each command that ran, exactly as you ran it, with its result: `python3 -m unittest -> pass: Ran 1 test, OK`. A failing suite still counts (`-> fail: ...`).
+  7. Hand over commands that could not run as `not runnable: <command>: <error>` (a timeout counts: `timed out`), so they appear under "Not checked".
+  If the project defines no checks, write `none defined`.
 - **The change** from step 1.
 
 ## 3. Run the reviewer
@@ -100,11 +108,11 @@ Skip this step if there are no shrinks.
 
 1. Ask which shrinks to apply. With 4 or fewer, ask one multi-select question (one option per shrink). With more, list them by number and ask the user to reply with the numbers. Always allow "none".
 2. If the user picked none, or no answer is possible, go to step 7.
-3. Run the project's tests before changing anything.
+3. Run the check commands proven in step 2 (those with `pass` or `fail`) before changing anything.
    - No tests: say that nothing can prove behavior stays the same, so only the re-review will protect them, and ask whether to continue.
    - Tests already failing: say so, and ask whether to continue anyway.
 4. Apply each picked shrink with Edit, replacing `before` with `after` exactly.
-5. Run the tests again. If anything that passed before now fails, restore each edit by replacing `after` with `before`, report which shrink broke what, and go to step 7. Never use git to undo.
+5. Run the same check commands again. If anything that passed before now fails, restore each edit by replacing `after` with `before`, report which shrink broke what, and go to step 7. Never use git to undo.
 6. Spawn `re-audit:reviewer` once more with `MODE: re-review`, the user request, and a diff of only the applied shrinks. Check its citations (step 4) and show only what it found. Do not start another round.
 
 ## 7. Optional Codex second opinion
