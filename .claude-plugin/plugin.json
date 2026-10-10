@@ -1,0 +1,17 @@
+{
+  "name": "re-audit",
+  "version": "0.1.0",
+  "description": "After Claude writes code, audit the changes: why each was needed (with evidence), missed edge cases in plain language, safe ways to shrink it, and every claim checked against the code.",
+  "license": "MIT",
+  "keywords": [
+    "code-review",
+    "audit",
+    "edge-cases",
+    "self-review"
+  ],
+  "author": {
+    "name": "KashifManzer",
+    "url": "https://github.com/KashifManzer"
+  },
+  "repository": "https://github.com/KashifManzer/re-audit"
+}

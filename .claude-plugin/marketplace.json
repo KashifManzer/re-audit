@@ -1,0 +1,6 @@
+{
+  "name": "re-audit",
+  "description": "re-audit: a Claude Code mod that audits code changes with evidence, plain-language edge cases, and checked citations.",
+  "owner": { "name": "KashifManzer" },
+  "plugins": [{ "name": "re-audit", "source": "./" }]
+}
